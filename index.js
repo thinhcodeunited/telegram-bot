@@ -11,13 +11,26 @@ const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
 const schedule = require('node-schedule');
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const schedule_time = {hour: 6, minute: 30, dayOfWeek: [1,2,3,4,5]}; // 6h30 from monday to friday
-const capture_opts = {
+const schedule_time = {hour: 10, minute: 40, dayOfWeek: [1,2,3,4,5]}; // 6h30 from monday to friday
+const capture_opts1 = {
   clip: {
-    x: 46,
-    y: 152,
-    width: 1083,
-    height: 628
+    x: 156,
+    y: 156,
+    width: 1289,
+    height: 260
+  },
+  overwrite: true,
+  width: 1920,
+  height: 1000,
+  timeout: 0
+}
+
+const capture_opts2 = {
+  clip: {
+    x: 255,
+    y: 520,
+    width: 710,
+    height: 410
   },
   overwrite: true,
   width: 1920,
@@ -25,8 +38,8 @@ const capture_opts = {
   timeout: 0
 }
 const items = [
-  ['https://sindresorhus.com', 'screenshot', capture_opts],
-  ['https://www.google.com/search?q=Masterchef&rlz=1C1ONGR_enVN991VN991&sxsrf=ALiCzsZvpUwa2emcQ7fNb3A_Ag0tqRW1NQ%3A1664393429385&ei=1aA0Y62QF5iSseMPpZ29qA0&ved=0ahUKEwjtzv_YnLj6AhUYSWwGHaVOD9UQ4dUDCA4&uact=5&oq=Masterchef&gs_lcp=Cgdnd3Mtd2l6EAMyBQguEMsBMggILhDUAhDLATIFCAAQywEyBQgAEMsBMggILhDUAhDLATIFCAAQywEyBQgAEMsBMggILhDUAhDLATIFCC4QywEyBQgAEMsBOgYIABAeEAdKBAhBGABKBAhGGABQAFgAYN8MaABwAXgAgAFriAHIAZIBAzEuMZgBAKABAcABAQ&sclient=gws-wiz', 'screenshot2', capture_opts]
+  ['https://docs.google.com/spreadsheets/d/1r95ZSdSFjHoVt2BiD9IPwXTC3vUCg5zBbdFpjGhXAXs/edit?usp=sharing#gid=501707920', 'screenshot', capture_opts1],
+  ['https://docs.google.com/spreadsheets/d/1r95ZSdSFjHoVt2BiD9IPwXTC3vUCg5zBbdFpjGhXAXs/edit?usp=sharing#gid=501707920', 'screenshot2', capture_opts2]
 ];
 let job;
 
@@ -102,4 +115,5 @@ bot.onText(/\/stop (.+)/, (msg, match) => {
   }
 });
 
+console.log(job);
 console.log('Telegram bot starting...');

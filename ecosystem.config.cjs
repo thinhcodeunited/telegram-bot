@@ -3,7 +3,7 @@ module.exports = {
         {
             name: "Telegram-bot",
             script: "./index.js",
-            watch: true,
+            watch: false,
             ignore_watch: ["screenshot.png",  "screenshot2.png"]
         }
     ]
