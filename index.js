@@ -137,7 +137,7 @@ bot.onText(/\/menu/, (msg, match) => {
 bot.onText(/\/alarm/, (msg, match) => {
   const chatId = msg.chat.id;
   const resp = match[1]; // the captured "whatever"
-  const content = `Em đã đặt lịch lấy thực đơn ngay bây giờ.
+  const content = `Em sẽ đặt lịch lấy thực đơn ngay bây giờ.
 Cám ơn mọi người đã tin tưởng vào iêm 😘`;
 
   bot.sendMessage(chatId, content);
