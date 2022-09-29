@@ -1,5 +1,5 @@
 # telegram-bot (Bot chat in instagram)
-Con bot vô dụng crawl thực đơn
+Con bot vô dụng dùng để crawl thực đơn hằng ngày
 
 ## Usage
 
