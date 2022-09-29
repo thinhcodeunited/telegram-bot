@@ -55,6 +55,8 @@ const get_menu = async (chatId) => {
         console.log(error.response.body); // => { ok: false, error_code: 400, description: 'Bad Request: chat not found' }
         bot.sendMessage(chatId, 'Sorry mọi người, hôm nay không có thực đơn nha 🥲');
       });
+
+      bot.sendMessage(chatId, 'Chúc anh chị ngon miệng nhé 😘');
     }, 1000 * 15);
   } catch(error) {
     console.log(error);
@@ -82,7 +84,10 @@ bot.onText(/\/start (.+)/, (msg, match) => {
   if (resp === 'thucdon') {
     bot.sendMessage(chatId, 'Hi mọi người, bây giờ em sẽ lấy thực đơn. Mọi người đợi em một chút nhé 😉');
     get_menu(chatId);
-    start_job(chatId);
+    
+    if (typeof job === 'undefined') {
+      start_job(chatId);
+    }
   }
 });
 
