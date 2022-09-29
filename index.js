@@ -11,7 +11,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
 const schedule = require('node-schedule');
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const schedule_time = {hour: 10, minute: 40, dayOfWeek: [1,2,3,4,5]}; // 6h30 from monday to friday
+const schedule_time = {hour: 8, minute: 55, dayOfWeek: [1,2,3,4,5]}; // 6h30 from monday to friday
 const capture_opts1 = {
   clip: {
     x: 156,
@@ -70,6 +70,7 @@ const get_menu = async (chatId) => {
       });
 
       bot.sendMessage(chatId, 'Chúc anh chị ngon miệng nhé 😘');
+      bot.sendMessage(chatId, 'Anh chị có thể order cơm tại đây nhé 😘https://docs.google.com/spreadsheets/d/11iwhSeT0Rt-z2sq4BUkFzIIuoADaF0Tc3I9rCKP-P98/edit?usp=sharing');
     }, 1000 * 15);
   } catch(error) {
     console.log(error);
