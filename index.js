@@ -69,7 +69,7 @@ const get_answer_outtime = () => {
 const get_menu = async (chatId) => {
   const format = 'hh:mm:ss'
   const time = moment(moment(), format);
-  const beforeTime = moment('08:00:00', format);
+  const beforeTime = moment('07:00:00', format);
   const afterTime = moment('18:00:00', format);
 
   if (!time.isBetween(beforeTime, afterTime)) {
