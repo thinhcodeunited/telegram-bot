@@ -98,7 +98,7 @@ const get_menu = async (chatId) => {
     });
 
     bot.sendMessage(chatId, 'Chúc anh chị ngon miệng nhé 😘');
-    bot.sendMessage(chatId, 'Anh chị có thể order cơm tại đây nhé 😘https://docs.google.com/spreadsheets/d/11iwhSeT0Rt-z2sq4BUkFzIIuoADaF0Tc3I9rCKP-P98/edit?usp=sharing');
+    bot.sendMessage(chatId, 'Anh chị có thể order cơm tại đây nhé 😘https://docs.google.com/spreadsheets/d/1r95ZSdSFjHoVt2BiD9IPwXTC3vUCg5zBbdFpjGhXAXs/edit?usp=sharing');
 
   } catch (error) {
     console.log(error);
