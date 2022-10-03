@@ -152,16 +152,16 @@ bot.onText(/\/alarm/, (msg, match) => {
     reply_markup: {
       inline_keyboard: [
         [{
-          text: "9.00 AM",
-          callback_data: '9h'
+          text: "9.10 AM",
+          callback_data: '9h10'
+        },
+        {
+          text: "9.15 AM",
+          callback_data: '9h15'
         },
         {
           text: "9.30 AM",
           callback_data: '9h30'
-        },
-        {
-          text: "10.00 AM",
-          callback_data: '10h'
         }]
       ]
     }
@@ -179,20 +179,20 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
 
   let time;
   switch (action) {
-    case '9h':
-      time = { hour: 9, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
+    case '9h10':
+      time = { hour: 9, minute: 10, dayOfWeek: [1, 2, 3, 4, 5] };
+      break;
+    case '9h15':
+      time = { hour: 9, minute: 15, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     case '9h30':
       time = { hour: 9, minute: 30, dayOfWeek: [1, 2, 3, 4, 5] };
-      break;
-    case '10h':
-      time = { hour: 10, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     default:
       time = { hour: 9, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
   }
-
+  console.log(time);
   const content = `Em sẽ đặt lịch lấy thực đơn ngay bây giờ.
 Cám ơn mọi người đã tin tưởng vào iêm 😘`;
 
