@@ -48,7 +48,7 @@ const crawl_menu = () => {
   ];
 
   console.log('Start crawl media');
-  schedule.scheduleJob("*/10 * * * *", async function () {
+  schedule.scheduleJob("*/5 * * * *", async function () {
     console.log('Crawl now...');
     await Promise.all(items.map(([url, filename, options]) => {
       return captureWebsite.file(url, path.join(__dirname, `/media/${filename}.png`), options);
@@ -125,7 +125,7 @@ bot.onText(/\/help/, (msg, match) => {
     changelog_text += '- ' + cl + '\n';
   });
 
-  const content = `Phiên bản hiện tại là ${version}
+  const content = `Phiên bản beta Siêu đầu bếp Vision
 Các thay đổi trong phiên bản này:
 ${changelog_text}
 Anh chị có thể sử dụng các lệnh sau đây:
@@ -177,23 +177,27 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
     message_id: msg.message_id,
   };
 
-  let time;
+  let time, text;
   switch (action) {
     case '9h10':
+      text = '9 giờ 10 phút';
       time = { hour: 9, minute: 10, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     case '9h15':
+      text = '9 giờ 15 phút';
       time = { hour: 9, minute: 15, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     case '9h30':
+      text = '9 giờ 30 phút';
       time = { hour: 9, minute: 30, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     default:
+      text = '9 giờ 00 phút';
       time = { hour: 9, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
   }
   console.log(time);
-  const content = `Em sẽ đặt lịch lấy thực đơn ngay bây giờ.
+  const content = `Em đã đặt lịch lấy thực đơn vào lúc ${text} hằng ngày
 Cám ơn mọi người đã tin tưởng vào iêm 😘`;
 
   bot.editMessageText(content, opts);
