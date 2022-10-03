@@ -117,9 +117,22 @@ const start_job = (chatId) => {
 
 bot.onText(/\/help/, (msg, match) => {
   const chatId = msg.chat.id;
-  const content = `Anh chị có thể sử dụng các lệnh sau đây:
+
+  let changelog = require('./changelog.json');
+  const version = changelog.version;
+
+  let changelog_text = '';
+  changelog.log[version].forEach(cl => {
+    changelog_text += '- ' + cl + '\n';
+  });
+
+  const content = `Phiên bản hiện tại là ${version}
+Các thay đổi trong phiên bản này:
+${changelog_text}
+Anh chị có thể sử dụng các lệnh sau đây:
 /menu - Xem thực đơn ngày hôm nay 
 /alarm - Đặt lịch thông báo thực đơn`;
+
   bot.sendMessage(chatId, content);
 });
 
@@ -140,8 +153,41 @@ bot.onText(/\/alarm/, (msg, match) => {
   const content = `Em sẽ đặt lịch lấy thực đơn ngay bây giờ.
 Cám ơn mọi người đã tin tưởng vào iêm 😘`;
 
+  bot.sendMessage(msg.chat.id, "123", {
+    reply_markup: {
+      inline_keyboard: [
+        [{
+          text: "dog",
+          callback_data: 'dog'
+        },
+        {
+          text: "cat",
+          callback_data: 'cat'
+        }
+        ],
+
+      ]
+    }
+  })
+  // bot.sendMessage(chatId, content);
   bot.sendMessage(chatId, content);
-  start_job(chatId)
+  // start_job(chatId)
+});
+
+bot.on('callback_query', function onCallbackQuery(callbackQuery) {
+  const action = callbackQuery.data;
+  const msg = callbackQuery.message;
+  const opts = {
+    chat_id: msg.chat.id,
+    message_id: msg.message_id,
+  };
+  let text;
+
+  if (action === 'dog') {
+    text = 'You hit button 1';
+  }
+
+  bot.editMessageText(text, opts);
 });
 
 console.log('Telegram bot started');
