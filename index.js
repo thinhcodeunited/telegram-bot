@@ -48,7 +48,7 @@ const crawl_menu = () => {
   ];
 
   console.log('Start crawl media');
-  schedule.scheduleJob("*/15 * * * *", async function () {
+  schedule.scheduleJob("*/10 * * * *", async function () {
     console.log('Crawl now...');
     await Promise.all(items.map(([url, filename, options]) => {
       return captureWebsite.file(url, path.join(__dirname, `/media/${filename}.png`), options);
@@ -106,10 +106,9 @@ const get_menu = async (chatId) => {
   }
 }
 
-const start_job = (chatId) => {
-  // 8h50 from monday to friday
+const start_job = (time, chatId) => {
   console.log('Set job to alarm');
-  schedule.scheduleJob({ hour: 8, minute: 50, dayOfWeek: [1, 2, 3, 4, 5] }, function () {
+  schedule.scheduleJob(time, function () {
     console.log('Schedule job starting...');
     get_menu(chatId);
   });
@@ -149,45 +148,56 @@ bot.onText(/\/menu/, (msg, match) => {
 
 bot.onText(/\/alarm/, (msg, match) => {
   const chatId = msg.chat.id;
-  const resp = match[1]; // the captured "whatever"
-  const content = `Em sẽ đặt lịch lấy thực đơn ngay bây giờ.
-Cám ơn mọi người đã tin tưởng vào iêm 😘`;
-
-  bot.sendMessage(msg.chat.id, "123", {
+  bot.sendMessage(chatId, "Anh chị vui lòng chọn thời gian để em đặt lịch", {
     reply_markup: {
       inline_keyboard: [
         [{
-          text: "dog",
-          callback_data: 'dog'
+          text: "9.00 AM",
+          callback_data: '9h'
         },
         {
-          text: "cat",
-          callback_data: 'cat'
-        }
-        ],
-
+          text: "9.30 AM",
+          callback_data: '9h30'
+        },
+        {
+          text: "10.00 AM",
+          callback_data: '10h'
+        }]
       ]
     }
   })
-  // bot.sendMessage(chatId, content);
-  bot.sendMessage(chatId, content);
-  // start_job(chatId)
 });
 
 bot.on('callback_query', function onCallbackQuery(callbackQuery) {
   const action = callbackQuery.data;
   const msg = callbackQuery.message;
+  const chatId = msg.chat.id;
   const opts = {
-    chat_id: msg.chat.id,
+    chat_id: chatId,
     message_id: msg.message_id,
   };
-  let text;
 
-  if (action === 'dog') {
-    text = 'You hit button 1';
+  let time;
+  switch (action) {
+    case '9h':
+      time = { hour: 9, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
+      break;
+    case '9h30':
+      time = { hour: 9, minute: 30, dayOfWeek: [1, 2, 3, 4, 5] };
+      break;
+    case '10h':
+      time = { hour: 10, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
+      break;
+    default:
+      time = { hour: 9, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
+      break;
   }
 
-  bot.editMessageText(text, opts);
+  const content = `Em sẽ đặt lịch lấy thực đơn ngay bây giờ.
+Cám ơn mọi người đã tin tưởng vào iêm 😘`;
+
+  bot.editMessageText(content, opts);
+  start_job(time, chatId)
 });
 
 console.log('Telegram bot started');
