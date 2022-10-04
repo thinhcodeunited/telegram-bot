@@ -6,12 +6,17 @@ const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 require('dotenv').config();
+require('./database/connect.cjs');
+const schema = require('./database/schema.cjs');
 process.env["NTBA_FIX_350"] = 1;
 const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
 const schedule = require('node-schedule');
 const moment = require('moment');
 const token = process.env.TELEGRAM_BOT_TOKEN;
+const { authorize } = require('./google_sheets_api.cjs');
+const { google } = require('googleapis');
+const tesseract = require("node-tesseract-ocr");
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
@@ -78,8 +83,6 @@ const get_menu = async (chatId) => {
     return;
   }
 
-  bot.sendMessage(chatId, 'Hi mọi người, bây giờ em sẽ lấy thực đơn. Mọi người đợi em một chút nhé 😉');
-
   try {
     let params = [
       {
@@ -97,20 +100,60 @@ const get_menu = async (chatId) => {
       bot.sendMessage(chatId, 'Sorry mọi người. Hiện tại em chưa lấy được thực đơn, anh chị vui lòng thử lại sau ít phút nhé 😋');
     });
 
-    bot.sendMessage(chatId, 'Chúc anh chị ngon miệng nhé 😘');
     bot.sendMessage(chatId, 'Anh chị có thể order cơm tại đây nhé 😘https://docs.google.com/spreadsheets/d/1r95ZSdSFjHoVt2BiD9IPwXTC3vUCg5zBbdFpjGhXAXs/edit?usp=sharing');
-
+    bot.sendMessage(chatId, 'Chúc anh chị ngon miệng nhé 😘');
   } catch (error) {
     console.log(error);
     bot.sendMessage(chatId, 'Sorry mọi người. Hiện tại em chưa lấy được thực đơn, anh chị vui lòng thử lại sau ít phút nhé 😋');
   }
 }
 
+const check_new_menu = async () => {
+  const orc_config = {
+    lang: "eng",
+    oem: 1,
+    psm: 3,
+  }
+
+  try {
+    const text = await tesseract.recognize("./media/screenshot.png", orc_config);
+
+    const text_splited = text.split(/\s/);
+    let result = false;
+    text_splited.forEach(ts => {
+      let moment_time = moment(ts, ["DD/MM/YYYY"], true);
+      if (moment_time.isValid() && moment_time.isSame(moment(), "day")) {
+        result = true;
+      }
+    });
+
+    return result;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+}
+
+const setCronTimeOut = (chatId) => {
+  // Chúng ta sẽ kiểm tra 1 phút / 1 lần xem ảnh đã cập nhật hay chưa?
+  setTimeout(async () => {
+    const check_menu = await check_new_menu();
+    if (check_menu) {
+      console.log("Well done, to close today timeout");
+      get_menu(chatId);
+    } else {
+      console.log("Not found new menu, waiting crawl menu..");
+      setCronTimeOut(chatId);
+    }
+  }, 60000);
+}
+
 const start_job = (time, chatId) => {
   console.log('Set job to alarm');
   schedule.scheduleJob(time, function () {
     console.log('Schedule job starting...');
-    get_menu(chatId);
+    // Thay vì lấy thẳng data trả về, check ảnh trước
+    setCronTimeOut(chatId);
   });
 }
 
@@ -181,7 +224,7 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
   switch (action) {
     case '9h10':
       text = '9 giờ 10 phút';
-      time = { hour: 9, minute: 10, dayOfWeek: [1, 2, 3, 4, 5] };
+      time = { hour: 23, minute: 20, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     case '9h15':
       text = '9 giờ 15 phút';
@@ -206,3 +249,42 @@ Cám ơn mọi người đã tin tưởng vào iêm 😘`;
 
 console.log('Telegram bot started');
 crawl_menu();
+
+
+// /**
+//  * Prints the names and majors of students in a sample spreadsheet:
+//  * @see https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
+//  * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
+//  */
+// async function listMajors(auth) {
+//   const sheets = google.sheets({ version: 'v4', auth });
+//   const res = await sheets.spreadsheets.values.get({
+//     spreadsheetId: '1nKf0xGq1WWz14wlMjd-OW04fTtpk12Hb2DRmHLV2W0A',
+//     range: `A1:B`,
+//   });
+
+//   const rows = res.data.values;
+//   if (!rows || rows.length === 0) {
+//     console.log('No data found.');
+//     return;
+//   }
+
+//   console.log(rows);
+//   console.log('Name, Major:');
+//   rows.forEach((row) => {
+//     // Print columns A and E, which correspond to indices 0 and 4.
+//     console.log(`${row[0]}, ${row[4]}`);
+//   });
+// }
+
+// bot.onText(/\/test-sheet/, (msg, match) => {
+//   const chatId = msg.chat.id;
+//   authorize().then(listMajors).catch(console.error);
+// });
+
+bot.onText(/\/test_orc/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const check = await check_new_menu();
+  bot.sendMessage(chatId, "Check ORC successfully, result is " + check);
+});
+
