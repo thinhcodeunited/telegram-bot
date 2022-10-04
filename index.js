@@ -204,8 +204,8 @@ bot.onText(/\/alarm/, (msg, match) => {
     reply_markup: {
       inline_keyboard: [
         [{
-          text: "9.05 AM",
-          callback_data: '9h5'
+          text: "9.00 AM",
+          callback_data: '9h'
         },
         {
           text: "9.15 AM",
@@ -231,9 +231,9 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
 
   let time, text;
   switch (action) {
-    case '9h5':
-      text = '9 giờ 5 phút';
-      time = { hour: 9, minute: 5, dayOfWeek: [1, 2, 3, 4, 5] };
+    case '9h':
+      text = '9 giờ';
+      time = { hour: 9, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     case '9h15':
       text = '9 giờ 15 phút';
