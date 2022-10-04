@@ -1,8 +1,9 @@
 const fs = require('fs').promises;
 const path = require('path');
 const process = require('process');
-const {authenticate} = require('@google-cloud/local-auth');
-const {google} = require('googleapis');
+const { authenticate } = require('@google-cloud/local-auth');
+const { google } = require('googleapis');
+const MenuModel = require('./database/schema.cjs');
 
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
@@ -65,4 +66,84 @@ async function authorize() {
   return client;
 }
 
-module.exports = {authorize}
+// SCAN DOCUMENT
+const sheet_id = process.env.SHEET_ID;
+
+async function test_sheet() {
+  try {
+    const auth = await authorize();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheet_id,
+      range: `A5:G`,
+    });
+
+    const rows = res.data.values;
+    if (!rows || rows.length === 0) {
+      console.log('No data sheet found');
+      return;
+    }
+
+    console.log(rows);
+  } catch (error) {
+    console.error(error.message);
+    console.log('Test menu yesterday fail');
+  }
+}
+
+async function scan() {
+  try {
+    const auth = await authorize();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const res = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheet_id,
+      range: `A5:G`,
+    });
+
+    const rows = res.data.values;
+    if (!rows || rows.length === 0) {
+      console.log('No data sheet found');
+      return;
+    }
+
+    let query = [];
+    for (let row of rows) {
+      if (!row[1]) continue;
+
+      query.push({
+        name: row[1],
+        set: row[2],
+        note: row[3],
+        price: row[4],
+        count: row[4]
+      })
+    }
+
+    await MenuModel.create(query);
+
+    console.log('Scan menu yesterday successfully');
+  } catch (error) {
+    console.error(error.message);
+    console.log('Scan menu yesterday fail');
+  }
+
+}
+
+
+async function clean() {
+  try {
+    const auth = await authorize();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.clear({
+      spreadsheetId: sheet_id,
+      range: `B5:F17`,
+    });
+
+    console.log('Clean menu yesterday successfully');
+  } catch (error) {
+    console.error(error.message);
+    console.log('Clean menu yesterday fail');
+  }
+}
+
+module.exports = { scan, clean, test_sheet }

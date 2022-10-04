@@ -7,14 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 require('dotenv').config();
 require('./database/connect.cjs');
-const schema = require('./database/schema.cjs');
 process.env["NTBA_FIX_350"] = 1;
 const TelegramBot = require('node-telegram-bot-api');
 const path = require('path');
 const schedule = require('node-schedule');
 const moment = require('moment');
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const { authorize } = require('./google_sheets_api.cjs');
+const { scan, clean, test_sheet } = require('./google_sheets_api.cjs');
 const { google } = require('googleapis');
 const tesseract = require("node-tesseract-ocr");
 
@@ -58,6 +57,16 @@ const crawl_menu = () => {
     await Promise.all(items.map(([url, filename, options]) => {
       return captureWebsite.file(url, path.join(__dirname, `/media/${filename}.png`), options);
     }));
+  });
+}
+
+const clean_document_schedule = () => {
+  console.log('Start clean document');
+  // Start on 6h00 sáng
+  schedule.scheduleJob({ hour: 6, minute: 0, dayOfWeek: [1, 2, 3, 4, 5] }, async function () {
+    console.log('Clean now...');
+    scan();
+    clean();
   });
 }
 
@@ -145,7 +154,7 @@ const setCronTimeOut = (chatId) => {
       console.log("Not found new menu, waiting crawl menu..");
       setCronTimeOut(chatId);
     }
-  }, 60000);
+  }, 30000);
 }
 
 const start_job = (time, chatId) => {
@@ -195,8 +204,8 @@ bot.onText(/\/alarm/, (msg, match) => {
     reply_markup: {
       inline_keyboard: [
         [{
-          text: "9.10 AM",
-          callback_data: '9h10'
+          text: "9.05 AM",
+          callback_data: '9h5'
         },
         {
           text: "9.15 AM",
@@ -222,9 +231,9 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
 
   let time, text;
   switch (action) {
-    case '9h10':
-      text = '9 giờ 10 phút';
-      time = { hour: 23, minute: 20, dayOfWeek: [1, 2, 3, 4, 5] };
+    case '9h5':
+      text = '9 giờ 5 phút';
+      time = { hour: 9, minute: 5, dayOfWeek: [1, 2, 3, 4, 5] };
       break;
     case '9h15':
       text = '9 giờ 15 phút';
@@ -247,44 +256,16 @@ Cám ơn mọi người đã tin tưởng vào iêm 😘`;
   start_job(time, chatId)
 });
 
-console.log('Telegram bot started');
-crawl_menu();
-
-
-// /**
-//  * Prints the names and majors of students in a sample spreadsheet:
-//  * @see https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-//  * @param {google.auth.OAuth2} auth The authenticated Google OAuth client.
-//  */
-// async function listMajors(auth) {
-//   const sheets = google.sheets({ version: 'v4', auth });
-//   const res = await sheets.spreadsheets.values.get({
-//     spreadsheetId: '1nKf0xGq1WWz14wlMjd-OW04fTtpk12Hb2DRmHLV2W0A',
-//     range: `A1:B`,
-//   });
-
-//   const rows = res.data.values;
-//   if (!rows || rows.length === 0) {
-//     console.log('No data found.');
-//     return;
-//   }
-
-//   console.log(rows);
-//   console.log('Name, Major:');
-//   rows.forEach((row) => {
-//     // Print columns A and E, which correspond to indices 0 and 4.
-//     console.log(`${row[0]}, ${row[4]}`);
-//   });
-// }
-
-// bot.onText(/\/test-sheet/, (msg, match) => {
-//   const chatId = msg.chat.id;
-//   authorize().then(listMajors).catch(console.error);
-// });
-
 bot.onText(/\/test_orc/, async (msg, match) => {
   const chatId = msg.chat.id;
   const check = await check_new_menu();
   bot.sendMessage(chatId, "Check ORC successfully, result is " + check);
 });
 
+bot.onText(/\/test_sheet/, (msg, match) => {
+  test_sheet();
+});
+
+console.log('Telegram bot started');
+clean_document_schedule();
+crawl_menu();
