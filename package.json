@@ -3,12 +3,14 @@
   "dependencies": {
     "@google-cloud/local-auth": "^2.1.0",
     "capture-website": "^3.1.0",
+    "crypto-js": "^4.1.1",
     "dotenv": "^16.0.2",
     "googleapis": "^105.0.0",
     "moment": "^2.29.4",
     "mongoose": "^6.6.3",
     "node-schedule": "^2.1.0",
     "node-telegram-bot-api": "^0.59.0",
-    "node-tesseract-ocr": "^2.2.1"
+    "node-tesseract-ocr": "^2.2.1",
+    "string-similarity": "^4.0.4"
   }
 }

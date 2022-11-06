@@ -1,6 +1,9 @@
 {
-    "version" : "1.0.1",
+    "version" : "2.0.0",
     "log" : {
+        "2.0.0" : [
+            "Thêm dịch vụ tự động đặt đồ ăn và hủy tự động"
+        ],
         "1.0.1" : [
             "Nâng cấp cập nhật mẫu đặt cơm khi qua ngày mới",
             "Cập nhập thêm thời gian đặt lịch"

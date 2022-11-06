@@ -16,6 +16,8 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 const { scan, clean, test_sheet } = require('./google_sheets_api.cjs');
 const { google } = require('googleapis');
 const tesseract = require("node-tesseract-ocr");
+const OrderModel = require('./database/order.db.cjs');
+const AutomaticOrder = require('./order.cjs');
 
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
@@ -150,6 +152,9 @@ const setCronTimeOut = (chatId) => {
     if (check_menu) {
       console.log("Well done, to close today timeout");
       get_menu(chatId);
+
+      // Tự động đặt đổ ăn
+      await AutomaticOrder.exec();
     } else {
       console.log("Not found new menu, waiting crawl menu..");
       setCronTimeOut(chatId);
@@ -177,12 +182,15 @@ bot.onText(/\/help/, (msg, match) => {
     changelog_text += '- ' + cl + '\n';
   });
 
-  const content = `Phiên bản beta Siêu đầu bếp Vision
+  const content = `Phiên bản siêu đầu bếp Vision version ${version}
 Các thay đổi trong phiên bản này:
 ${changelog_text}
 Anh chị có thể sử dụng các lệnh sau đây:
 /menu - Xem thực đơn ngày hôm nay 
-/alarm - Đặt lịch thông báo thực đơn`;
+/alarm - Đặt lịch thông báo thực đơn
+/order [tên] - Sử dụng dịch vụ tự động đặt cơm
+/stop_order - Dừng sử dụng dịch vụ tự động đăt cơm
+`;
 
   bot.sendMessage(chatId, content);
 });
@@ -229,6 +237,8 @@ bot.on('callback_query', function onCallbackQuery(callbackQuery) {
     message_id: msg.message_id,
   };
 
+  if (msg.text !== 'Anh chị vui lòng chọn thời gian để em đặt lịch') return;
+
   let time, text;
   switch (action) {
     case '9h':
@@ -264,6 +274,68 @@ bot.onText(/\/test_orc/, async (msg, match) => {
 
 bot.onText(/\/test_sheet/, (msg, match) => {
   test_sheet();
+});
+
+/////////////////////////ORDER/////////////////////////////////////////
+bot.onText(/\/order(.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const resp = match[1]; // the captured "whatever"
+
+  const findOrder = await OrderModel.findOne({name : resp});
+  if (findOrder) {
+    bot.sendMessage(chatId, `Người này đã sử dụng dịch vụ tự động đặt cơm!`);
+    return;
+  }
+  // Lưu vào DB 
+  await OrderModel.create({ name: resp, chat_id: chatId });
+
+  // Tự động đặt đổ ăn
+  await AutomaticOrder.exec();
+  bot.sendMessage(chatId, `Cám ơn. "${resp}" đã đăng ký sử dụng dịch vụ tự động đặt cơm`);
+});
+
+bot.onText(/\/stop_order/, async (msg, match) => {
+  const chatId = msg.chat.id;
+
+  const listOrder = await OrderModel.find();
+  if (listOrder.length < 1) {
+    bot.sendMessage(chatId, "Hiện tại chưa có ai dùng dịch vụ tự động đặt cơm.");
+    return;
+  }
+
+  const inline_keyboard = [];
+  listOrder.forEach(lo => {
+    inline_keyboard.push({
+      text: lo.name,
+      callback_data: lo._id.toString()
+    })
+  })
+
+  bot.sendMessage(chatId, "Anh/chị muốn dừng dịch vụ tự động đặt cơm cho ai?", {
+    reply_markup: {
+      inline_keyboard: [inline_keyboard]
+    }
+  });
+
+  bot.on('callback_query', async function onCallbackQuery(callbackQuery) {
+    const order_id = callbackQuery.data;
+    const msg = callbackQuery.message;
+    const chatId = msg.chat.id;
+    const opts = {
+      chat_id: chatId,
+      message_id: msg.message_id,
+    };
+
+    if (msg.text !== 'Anh/chị muốn dừng dịch vụ tự động đặt cơm cho ai?') return;
+
+    const findOrder = await OrderModel.findById(order_id);
+    if (!findOrder) {
+      bot.editMessageText("Người này chưa sử dụng dịch vụ!", opts);
+    }
+
+    await OrderModel.findByIdAndRemove(order_id);
+    bot.editMessageText(`"${findOrder.name}" đã ngưng sử dụng dịch vụ tự động đặt cơm`, opts);
+  });
 });
 
 console.log('Telegram bot started');

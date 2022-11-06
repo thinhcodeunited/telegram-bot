@@ -5,7 +5,7 @@ media/
 # Environment config
 .env.development
 .env.production
-
+.env
 # Upload directory
 public/uploads/
 
