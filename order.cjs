@@ -75,6 +75,18 @@ const removeAccents = (str) => {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
 }
 
+const arrayUnique = (array) => {
+  let a = array.concat();
+  for(let i=0; i<a.length; ++i) {
+      for(let j=i+1; j<a.length; ++j) {
+          if(a[i] === a[j])
+              a.splice(j--, 1);
+      }
+  }
+
+  return a;
+}
+
 class AutomaticOrder {
   static #instance;
 
@@ -106,8 +118,9 @@ class AutomaticOrder {
 
   #filter_mon_an(mon_an_string) {
     mon_an_string = mon_an_string.toLowerCase();
-    const list_name = mon_an_string.split(/[!@#$%^&*()-_,.\s]/);
-    return list_name.filter(el => el != '');
+    const list_name = mon_an_string.split(/[+]/);
+    const list_filter = list_name.filter(el => el != '');
+    return arrayUnique(list_filter.map(lf => lf.trim()));
   }
 
   async #filter_mon_an_in_past(name_string) {
