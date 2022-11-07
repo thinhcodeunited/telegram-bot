@@ -299,7 +299,13 @@ class AutomaticOrder {
 
     if (!mon_chinh1 && !mon_chinh2 && !mon_phu && !canh && !rau) return null;
 
-    return (mon_chinh1 ? mon_chinh1 : '') + ' + ' + (mon_chinh2 ? mon_chinh2 : '') + ' + ' + (mon_phu ? mon_phu : '') + ' + ' + (canh ? canh : '') + ' + ' + (rau ? rau : '');
+    return {
+      mon_chinh1: (mon_chinh1 ? mon_chinh1 : ''),
+      mon_chinh2: (mon_chinh2 ? mon_chinh2 : ''),
+      mon_phu: (mon_phu ? mon_phu : ''),
+      canh: (canh ? canh : ''),
+      rau: (rau ? rau : ''),
+    }
   }
 
   async #calculate(order, list_mon_an_today) {
@@ -312,7 +318,11 @@ class AutomaticOrder {
     return {
       field_name : this.#filter_name(name),
       name,
-      order: mon_an_now,
+      mon_chinh1: mon_an_now.mon_chinh1,
+      mon_chinh2: mon_an_now.mon_chinh2,
+      mon_phu: mon_an_now.mon_phu,
+      rau: mon_an_now.rau,
+      canh: mon_an_now.canh,
       price: 35000,
       count: 1
     }
@@ -328,11 +338,12 @@ class AutomaticOrder {
       // Phân tích tên người đặt
       for (let i = 0; i < listOrder.length; i++) {
         const cal = await this.#calculate(listOrder[i], list_mon_an_today);
-        if (!cal.order) continue;
+        if (!cal.mon_chinh1 && !cal.mon_chinh2 && !cal.mon_phu) continue;
 
         await this.#write_order_document(cal);
       }
 
+      console.log('Write order to sheet done.')
       return true;
     } catch (error) {
       console.log(error);
@@ -355,6 +366,11 @@ class AutomaticOrder {
         return false;
       }
 
+      let addon_count = 1;
+      if (rows[rows.length - 1].includes('TÊN KHÁCH')) {
+        addon_count = 2;
+      }
+  
       let check_duplicate_name = false;
       for(const row of rows) {
         if (row[0] === order.name) {
@@ -364,17 +380,23 @@ class AutomaticOrder {
 
       if (check_duplicate_name) return true;
 
-      const name_range = "B" + (rows.length + 1);
+      const name_range = "B" + (rows.length + addon_count);
       await this.#sheet_update_document(name_range, order.name);
 
-      const set_range = "C" + (rows.length + 1);
-      await this.#sheet_update_document(set_range, order.order);
+      const mon_chinh1_range = "E" + (rows.length + addon_count);
+      await this.#sheet_update_document(mon_chinh1_range, order.mon_chinh1);
 
-      const price_range = "E" + (rows.length + 1);
-      await this.#sheet_update_document(price_range, order.price);
+      const mon_chinh2_range = "F" + (rows.length + addon_count);
+      await this.#sheet_update_document(mon_chinh2_range, order.mon_chinh2);
 
-      const count_range = "F" + (rows.length + 1);
-      await this.#sheet_update_document(count_range, order.count);
+      const mon_phu_range = "G" + (rows.length + addon_count);
+      await this.#sheet_update_document(mon_phu_range, order.mon_phu);
+
+      const rau_range = "H" + (rows.length + addon_count);
+      await this.#sheet_update_document(rau_range, order.rau);
+
+      const canh_range = "I" + (rows.length + addon_count);
+      await this.#sheet_update_document(canh_range, order.canh);
 
       return true;
     } catch (error) {

@@ -154,7 +154,7 @@ const setCronTimeOut = (chatId) => {
       get_menu(chatId);
 
       // Tự động đặt đổ ăn
-      await AutomaticOrder.exec();
+      AutomaticOrder.exec();
     } else {
       console.log("Not found new menu, waiting crawl menu..");
       setCronTimeOut(chatId);
@@ -272,8 +272,13 @@ bot.onText(/\/test_orc/, async (msg, match) => {
   bot.sendMessage(chatId, "Check ORC successfully, result is " + check);
 });
 
-bot.onText(/\/test_sheet/, (msg, match) => {
-  test_sheet();
+bot.onText(/\/test_sheet/, async(msg, match) => {
+  await scan();
+  await clean();
+});
+
+bot.onText(/\/test_order/, async (msg, match) => {
+  await AutomaticOrder.exec()
 });
 
 /////////////////////////ORDER/////////////////////////////////////////
@@ -289,8 +294,6 @@ bot.onText(/\/order(.+)/, async (msg, match) => {
   // Lưu vào DB 
   await OrderModel.create({ name: resp, chat_id: chatId });
 
-  // Tự động đặt đổ ăn
-  await AutomaticOrder.exec();
   bot.sendMessage(chatId, `Cám ơn. "${resp}" đã đăng ký sử dụng dịch vụ tự động đặt cơm`);
 });
 

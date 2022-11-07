@@ -97,7 +97,7 @@ async function scan() {
     const sheets = google.sheets({ version: 'v4', auth });
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: sheet_id,
-      range: `A5:G`,
+      range: `A5:M`,
     });
 
     const rows = res.data.values;
@@ -108,14 +108,14 @@ async function scan() {
 
     let query = [];
     for (let row of rows) {
-      if (!row[1]) continue;
-
+      if (!row[1] ) continue;
+ 
       query.push({
         name: row[1],
-        set: row[2],
+        set: row[4] + ' + ' + row[5] + ' + ' + row[6] + ' + ' + row[7] + ' + ' + row[8],
         note: row[3],
-        price: row[4],
-        count: row[4]
+        price: 35000,
+        count: null
       })
     }
 
@@ -136,7 +136,7 @@ async function clean() {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.clear({
       spreadsheetId: sheet_id,
-      range: `B5:F17`,
+      range: `B6:M18`,
     });
 
     console.log('Clean menu yesterday successfully');
