@@ -281,6 +281,12 @@ bot.onText(/\/test_order/, async (msg, match) => {
   await AutomaticOrder.exec()
 });
 
+bot.onText(/\/hillo_my_bot/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const check = await check_new_menu();
+  bot.sendMessage(chatId, "Hế'sờ lô anh chị, lại là em đây, em được hồi sinh rồi 😘");
+});
+
 /////////////////////////ORDER/////////////////////////////////////////
 bot.onText(/\/order(.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
