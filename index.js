@@ -128,7 +128,6 @@ const check_new_menu = async () => {
 
   try {
     const text = await tesseract.recognize("./media/screenshot.png", orc_config);
-    console.log(text);
     const text_splited = text.split(/\s/);
     let result = false;
     text_splited.forEach(ts => {
